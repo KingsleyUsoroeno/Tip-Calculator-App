@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Tip Calculator</string>
+    <string name="perPersonStaticText">Per Buddy</string>
+    <string name="total_amount">Total Amount</string>
+    <string name="tip_amount">Tip</string>
+    <string name="bills">Bills ($)</string>
+    <string name="hint_zero">0</string>
+    <string name="tip_percentage">Tip Percentage</string>
+    <string name="tip_hint">15%</string>
+</resources>
