@@ -1,27 +1,23 @@
 package com.example.tipcalculator
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
 import android.text.TextUtils
-import android.text.TextWatcher
 import android.util.Log
 import android.view.View
-import android.widget.*
-import androidx.core.widget.addTextChangedListener
+import androidx.appcompat.app.AppCompatActivity
 import com.example.tipcalculator.databinding.ActivityMainBinding
-import android.widget.Toast
+import com.example.util.extension.onTextChange
 
 const val HUNDRED_PERCENT = 100.00
 const val TIP_INCREMENT_PERCENT = 5
 const val MIN_TIP = 0
 const val MAX_TIP = 95
 
-class MainActivity : AppCompatActivity(), View.OnClickListener, TextWatcher {
-    private lateinit var binding : ActivityMainBinding
+class MainActivity : AppCompatActivity(), View.OnClickListener {
+    private lateinit var binding: ActivityMainBinding
 
     private var numberOfPeople = 1 // set default number of people
-    private var tipPercent = 15 // set default tip percent
+    // private var tipPercent = 15 // set default tip percent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,80 +28,59 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, TextWatcher {
     }
 
     private fun initViews() {
-
         binding.addTipButton.setOnClickListener(this)
-       binding.subtractTipButton.setOnClickListener(this)
-        binding.billAmount.addTextChangedListener(this)
+        binding.subtractTipButton.setOnClickListener(this)
 
-        binding.tipTextView.addTextChangedListener(object : TextWatcher {
-            override fun onTextChanged(cs: CharSequence, arg1: Int, arg2: Int, arg3: Int) {
-                if(cs.toString().isNotEmpty()){
-                    val tipStrip = cs.toString().replace("%", "");
-                    if(tipStrip.length == 2){
-                       // val tip: Int = cs.toString().replace("%", "").toInt()
-                        Log.i("TAG", "onTextChanged: $cs $tipStrip")
-
-                        if(tipStrip.toInt() > 15) incrementTip() else decrementTip() // 15 is default
-                    }
-                    //calculateExpense()
-                }else{
-                    Toast.makeText(applicationContext,"Input a value",Toast.LENGTH_SHORT).show()
+        binding.tipTextView.onTextChange { input ->
+            if (input.isNotEmpty()) {
+                val tipStrip = input.replace("%", "")
+                if (tipStrip.length == 2) {
+                    val tipPercent: Int = tipStrip.toInt()
+                    Log.i("TAG", "onTextChanged: $input $tipStrip")
+                    calculateExpense(tipPercent)
                 }
             }
+        }
 
-            override fun beforeTextChanged(arg0: CharSequence, arg1: Int, arg2: Int, arg3: Int) {
-                //Toast.makeText(applicationContext, "before text change", Toast.LENGTH_LONG).show()
-            }
-
-            override fun afterTextChanged(arg0: Editable) {
-               // Toast.makeText(applicationContext, "after text change", Toast.LENGTH_LONG).show()
-            }
-        })
+        binding.billAmount.onTextChange { }
     }
 
-    private fun calculateExpense() {
-
-        if (TextUtils.isEmpty(binding.billAmount.text.toString())){
+    private fun calculateExpense(tipPercent: Int) {
+        if (TextUtils.isEmpty(binding.billAmount.text.toString())) {
             binding.billAmount.error = "Can't be empty.."
             return
         }
         val totalBill = binding.billAmount.text.toString().toDouble()
 
-        val totalExpense = ((tipPercent/ HUNDRED_PERCENT)* totalBill) / numberOfPeople
+        val totalExpense = ((tipPercent / HUNDRED_PERCENT) * totalBill) / numberOfPeople
         val mTotalAmount = (totalBill) + totalExpense
         binding.tipAmount.text = String.format("$%.2f", totalExpense)
-        binding.totalAmount.text = String.format("$%.2f",mTotalAmount)
+        binding.totalAmount.text = String.format("$%.2f", mTotalAmount)
 
     }
+
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.addTipButton -> incrementTip()
             R.id.subtractTipButton -> decrementTip()
         }
     }
-    private fun incrementTip() {
 
+    private fun incrementTip() {
+        var tipPercent: Int = binding.tipTextView.text.toString().trim().toInt()
         if (tipPercent != MAX_TIP) {
             tipPercent += TIP_INCREMENT_PERCENT
-           binding.tipTextView.setText(String.format("%d%%",tipPercent))
+            binding.tipTextView.setText(String.format("%d%%", tipPercent))
         }
-        calculateExpense()
+        calculateExpense(tipPercent = tipPercent)
     }
+
     private fun decrementTip() {
+        var tipPercent: Int = binding.tipTextView.text.toString().trim().toInt()
         if (tipPercent != MIN_TIP) {
             tipPercent -= TIP_INCREMENT_PERCENT
-            binding.tipTextView.setText(String.format("%d%%",tipPercent))
+            binding.tipTextView.setText(String.format("%d%%", tipPercent))
         }
-        calculateExpense()
+        calculateExpense(tipPercent)
     }
-    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-        if (binding.billAmount.text.isNotEmpty()) {
-            calculateExpense()
-        }else{
-            Toast.makeText(this,"Input a value",Toast.LENGTH_SHORT).show()
-        }
-    }
-    override fun afterTextChanged(s: Editable?) {
-    }
-    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 }
